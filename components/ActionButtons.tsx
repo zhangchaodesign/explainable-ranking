@@ -13,12 +13,14 @@ const ActionButtons = () => {
   const { setSelectedIDs, setIsInfoOpen } = useInfoPanelConfigStore();
   const { setIsNewCriteriaOpen } = useSharedConfigStore();
   const { gridItems, rankItems, setRankItems } = useItemDataStore();
-  const { weightSort, setWeightSort } = useWeightPanelStore();
+  const { weightSort, setWeightSort, weightSortState, setWeightSortState } = useWeightPanelStore();
 
   const [showWeightConfirm, setShowWeightConfirm] = useState(false);
   const [proposedWeights, setProposedWeights] = useState<{
     [key: string]: number;
   }>({});
+
+  const [showInsertionSortConfirm, setShowInsertionSortConfirm] = useState(false);
 
   const hasWeightChanges = () => {
     return Object.entries(proposedWeights).some(([criterion, weight]) => {
@@ -33,12 +35,7 @@ const ActionButtons = () => {
         <div className="flex flex-row gap-2 justify-end w-full">
           <button
             onClick={() => {
-              setRankItems([gridItems[gridItems.length - 1]]);
-              setSelectedIDs([
-                gridItems[gridItems.length - 1].id,
-                gridItems[gridItems.length - 2].id,
-              ]);
-              setIsInfoOpen(true);
+              setShowInsertionSortConfirm(true);
             }}
             className="btn btn-sm btn-neutral shadow-none"
           >
@@ -81,16 +78,69 @@ const ActionButtons = () => {
         </div>
       )}
 
+      {/* Insertion Sort Criteria Confirmation Dialog */}
+      {showInsertionSortConfirm && (
+        <div className="fixed inset-0 bg-black/30 flex justify-center items-center z-[100]">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+            <h3 className="font-bold text-lg mb-2">Select Criteria</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Select the criteria you want to consider during insertion sort.
+            </p>
+            <div className="space-y-2 mb-6">
+              {Object.keys(weightSortState).map((criterion) => (
+                <label key={criterion} className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="checkbox checkbox-sm checkbox-neutral rounded-sm"
+                    checked={weightSortState[criterion] || false}
+                    onChange={(e) => {
+                      setWeightSortState({
+                        ...weightSortState,
+                        [criterion]: e.target.checked,
+                      });
+                    }}
+                  />
+                  <span className="text-sm">{criterion}</span>
+                </label>
+              ))}
+            </div>
+            <div className="flex justify-end gap-2">
+              <button
+                className="btn btn-sm btn-ghost shadow-none"
+                onClick={() => setShowInsertionSortConfirm(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="btn btn-sm shadow-none btn-neutral"
+                onClick={() => {
+                  setRankItems([gridItems[gridItems.length - 1]]);
+                  setSelectedIDs([
+                    gridItems[gridItems.length - 1].id,
+                    gridItems[gridItems.length - 2].id,
+                  ]);
+                  setIsInfoOpen(true);
+                  setShowInsertionSortConfirm(false);
+                }}
+                disabled={!Object.values(weightSortState).some((v) => v)}
+              >
+                Start Sort
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Weight Confirmation Dialog */}
       {showWeightConfirm && (
-        <div className="modal modal-open">
-          <div className="modal-box">
-            <h3 className="font-bold text-lg">
+        <div className="fixed inset-0 bg-black/30 flex justify-center items-center z-[100]">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6">
+            <h3 className="font-bold text-lg mb-2">
               {hasWeightChanges()
                 ? "Confirm Weight Changes"
                 : "No Changes from Estimation"}
             </h3>
-            <p className="py-4">
+            <p className="text-sm text-gray-600 mb-4">
               {hasWeightChanges()
                 ? "The system has estimated new weights based on your ranking. Review the changes below."
                 : "The estimated weights are the same as your current weights."}
@@ -147,9 +197,9 @@ const ActionButtons = () => {
               </div>
             </div>
 
-            <div className="modal-action">
+            <div className="flex justify-end gap-2 mt-6">
               <button
-                className="btn btn-sm"
+                className="btn btn-sm btn-ghost shadow-none"
                 onClick={() => setShowWeightConfirm(false)}
               >
                 {hasWeightChanges() ? "Cancel" : "Close"}
