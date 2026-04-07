@@ -16,19 +16,22 @@ type HeaderProps = {
 };
 
 const Header = ({ onDataLoad }: HeaderProps) => {
-  const { rankItems } = useItemDataStore();
+  const { rankItems, items } = useItemDataStore();
   const { sheetLink } = useSharedConfigStore();
   const { dataset } = useStudyManagerStore();
 
   const handleExport = () => {
+    const dataToExport = rankItems.length > 0 ? rankItems : items;
+    if (dataToExport.length === 0) return;
+
     const columnsToExclude = ["id", "order", "chosen"];
-    const allKeys = Object.keys(rankItems[0] || {}).filter(
+    const allKeys = Object.keys(dataToExport[0] || {}).filter(
       (key) => !columnsToExclude.includes(key),
     );
 
     let csvContent = allKeys.join(",") + "\n";
 
-    rankItems.forEach((item) => {
+    dataToExport.forEach((item) => {
       const row = allKeys
         .map((key) => {
           let value = item[key] !== undefined ? item[key] : "";
@@ -95,7 +98,7 @@ const Header = ({ onDataLoad }: HeaderProps) => {
             Open Sheet
           </button>
         )}
-        {rankItems.length > 0 && (
+        {(rankItems.length > 0 || items.length > 0) && (
           <button
             className="btn btn-sm btn-ghost text-xs"
             onClick={() => {

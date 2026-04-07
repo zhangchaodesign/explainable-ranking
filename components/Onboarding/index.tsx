@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   useStudyManagerStore,
   useSharedConfigStore,
@@ -21,21 +21,21 @@ interface OnboardingProps {
 }
 
 const DATASETS: { value: DatasetType; label: string }[] = [
-  { value: "demo", label: "Demo" },
-  { value: "cat", label: "Cat" },
-  { value: "city", label: "City" },
-  { value: "vacation", label: "Vacation" },
-  { value: "video", label: "Video" },
-  { value: "minutes", label: "Minutes" },
-  { value: "grading", label: "Grading" },
+  { value: "demo", label: "Best Cats" },
+  // { value: "cat", label: "Cat" },
+  // { value: "city", label: "City" },
+  { value: "vacation", label: "Travel Destinations" },
+  { value: "video", label: "3D Render Videos" },
+  { value: "minutes", label: "Short Films" },
+  // { value: "grading", label: "Grading" },
 ];
 
 const Onboarding = ({ onDataLoad }: OnboardingProps) => {
-  const { user, setUser, dataset, setDataset } = useStudyManagerStore();
+  const { dataset, setDataset } = useStudyManagerStore();
   const { sheetLink, setSheetLink } = useSharedConfigStore();
   const { aiEnabled, setAiEnabled, apiKey, setApiKey } = useOpenAIAPI();
-  const [nameError, setNameError] = useState(false);
   const [apiKeyError, setApiKeyError] = useState(false);
+  const [uploadedFileData, setUploadedFileData] = useState<{name: string, data: any[]} | null>(null);
 
   const {
     setSpreadsheetId,
@@ -49,24 +49,89 @@ const Onboarding = ({ onDataLoad }: OnboardingProps) => {
     loadAllDataWithoutFilter,
   } = useGoogleSheetLoader(onDataLoad);
 
-  const handleGetStarted = () => {
-    const currentUser = useStudyManagerStore.getState().user;
-    if (!currentUser || currentUser.trim() === "") {
-      setNameError(true);
-      return;
+  const dataFileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleDataFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const text = event.target?.result as string;
+        const lines = text.split('\n');
+        if (lines.length < 1) return;
+        const headers = lines[0].split(',').map(h => h.trim());
+        const data: any[] = [];
+        
+        for (let i = 1; i < lines.length; i++) {
+          if (!lines[i].trim()) continue;
+          
+          let inQuotes = false;
+          let currentField = '';
+          const row: string[] = [];
+          
+          for (let c = 0; c < lines[i].length; c++) {
+            const char = lines[i][c];
+            if (char === '"' && lines[i][c+1] === '"') {
+              currentField += '"';
+              c++;
+            } else if (char === '"') {
+              inQuotes = !inQuotes;
+            } else if (char === ',' && !inQuotes) {
+              row.push(currentField);
+              currentField = '';
+            } else {
+              currentField += char;
+            }
+          }
+          row.push(currentField);
+          
+          const obj: any = {};
+          headers.forEach((header, index) => {
+            let val: any = row[index] !== undefined ? row[index] : '';
+            if (typeof val === 'string' && val.startsWith('"') && val.endsWith('"')) {
+              val = val.slice(1, -1);
+            }
+            if (val !== '' && !isNaN(Number(val))) {
+              val = Number(val);
+            }
+            obj[header] = val;
+          });
+          
+          if (!obj.id) obj.id = Date.now() + i;
+          data.push(obj);
+        }
+        
+        setUploadedFileData({ name: file.name, data });
+      };
+      reader.readAsText(file);
     }
-    setNameError(false);
+  };
+
+  const handleGetStarted = () => {
     if (aiEnabled && !apiKey.trim()) {
       setApiKeyError(true);
       return;
     }
     setApiKeyError(false);
+
+    if (uploadedFileData) {
+      onDataLoad(uploadedFileData.data, false);
+      const currentDataset = useStudyManagerStore.getState().dataset;
+      eventTracker({
+        action: "start study",
+        data: {
+          dataset: currentDataset,
+          uploadedFile: uploadedFileData.name,
+        },
+      });
+      return;
+    }
+
     loadDataFromGoogleSheet();
     const currentDataset = useStudyManagerStore.getState().dataset;
     eventTracker({
       action: "start study",
       data: {
-        id: currentUser,
         dataset: currentDataset,
       },
     });
@@ -87,40 +152,20 @@ const Onboarding = ({ onDataLoad }: OnboardingProps) => {
 
         {/* Setup Card */}
         <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6 space-y-5">
-          {/* Name */}
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700">User ID</label>
-            <input
-              type="text"
-              value={user}
-              placeholder="Enter your User ID..."
-              onChange={(e) => {
-                setUser(e.target.value);
-                if (e.target.value.trim()) setNameError(false);
-              }}
-              className={`input input-bordered w-full ${nameError ? "input-error" : ""}`}
-            />
-            {nameError && (
-              <p className="text-xs text-error">
-                Please enter your name to continue.
-              </p>
-            )}
-          </div>
-
           {/* Dataset Selection */}
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-gray-700">Dataset</label>
 
             {/* Preset dropdown */}
             <div
-              className={`dropdown w-full ${sheetLink ? "pointer-events-none opacity-50" : ""}`}
+              className={`dropdown w-full ${sheetLink || uploadedFileData ? "pointer-events-none opacity-50" : ""}`}
             >
               <div
-                tabIndex={sheetLink ? -1 : 0}
+                tabIndex={sheetLink || uploadedFileData ? -1 : 0}
                 role="button"
                 className="btn w-full justify-between"
               >
-                <span className="capitalize">{dataset}</span>
+                <span>{DATASETS.find((d) => d.value === dataset)?.label || dataset}</span>
                 <svg
                   className="w-4 h-4"
                   fill="none"
@@ -171,8 +216,59 @@ const Onboarding = ({ onDataLoad }: OnboardingProps) => {
                   setSpreadsheetId(id);
                 }
               }}
-              className="input input-bordered w-full"
+              className={`input input-bordered w-full ${uploadedFileData ? "opacity-50 pointer-events-none" : ""}`}
+              disabled={!!uploadedFileData}
             />
+
+            {/* Divider */}
+            <div className="flex items-center gap-3 py-1">
+              <div className="flex-1 border-t border-gray-200" />
+              <span className="text-xs text-gray-400">or upload local files</span>
+              <div className="flex-1 border-t border-gray-200" />
+            </div>
+
+            {/* File Uploads */}
+            <div className="flex flex-col gap-2">
+              <input
+                type="file"
+                accept=".csv"
+                ref={dataFileInputRef}
+                onChange={handleDataFileUpload}
+                className="hidden"
+              />
+              {uploadedFileData ? (
+                <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg p-2">
+                  <div className="flex-1 overflow-hidden">
+                    <p className="text-sm font-medium text-gray-700 truncate" title={uploadedFileData.name}>
+                      {uploadedFileData.name}
+                    </p>
+                    <p className="text-xs text-gray-500">{uploadedFileData.data.length} items ready</p>
+                  </div>
+                  <button
+                    className="btn btn-xs btn-outline"
+                    onClick={() => dataFileInputRef.current?.click()}
+                  >
+                    Change
+                  </button>
+                  <button
+                    className="btn btn-xs btn-ghost text-error"
+                    onClick={() => {
+                      setUploadedFileData(null);
+                      if (dataFileInputRef.current) dataFileInputRef.current.value = "";
+                    }}
+                  >
+                    Clear
+                  </button>
+                </div>
+              ) : (
+                <button
+                  className="btn btn-outline w-full text-xs"
+                  onClick={() => dataFileInputRef.current?.click()}
+                >
+                  Upload Data CSV
+                </button>
+              )}
+            </div>
           </div>
 
           {/* AI Features Toggle */}

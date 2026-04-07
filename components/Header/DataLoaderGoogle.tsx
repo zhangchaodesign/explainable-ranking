@@ -202,7 +202,7 @@ const DataLoader = ({ onDataLoad, onClose }: DataLoaderProps) => {
                   onClick={() => setDataset("demo")}
                   className={dataset === "demo" ? "active" : ""}
                 >
-                  Demo
+                  Best Cats
                 </a>
               </li>
             </ul>
