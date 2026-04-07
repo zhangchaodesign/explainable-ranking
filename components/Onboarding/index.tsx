@@ -103,59 +103,68 @@ const Onboarding = ({ onDataLoad }: OnboardingProps) => {
           const row2 = parseRow(lines[1]);
           const validTypes = new Set(['image', 'video', 'link', 'name', 'info', 'criterion', 'file', 'filter', '']);
           const isTypeRow = row2.every(t => validTypes.has(t.toLowerCase().trim().replace(/!$/, '')));
+          const hasName = row2.some(t => t.toLowerCase().trim().replace(/!$/, '') === 'name');
           
-          if (isTypeRow && row2.some(t => t.trim() !== '')) {
-             startIdx = 2;
-             types = {};
-             headers.forEach((header, index) => {
-               types![header] = row2[index] || "";
-             });
-             
-             const numberKeys: string[] = [];
-             const stringKeys: string[] = [];
-             const allKeys: string[] = [...headers];
-             
-             headers.forEach((header, index) => {
-               const type = types![header].toLowerCase();
-               const baseType = type.endsWith("!") ? type.slice(0, -1) : type;
-               
-               switch (baseType) {
-                 case "image":
-                   setImageKey(header);
-                   break;
-                 case "video":
-                   setVideoKey(header);
-                   stringKeys.push(header);
-                   break;
-                 case "link":
-                   setLinkKey(header);
-                   stringKeys.push(header);
-                   break;
-                 case "name":
-                   setCardKey(header);
-                   setNameKey(header);
-                   stringKeys.push(header);
-                   break;
-                 case "info":
-                   stringKeys.push(header);
-                   break;
-                 case "criterion":
-                   numberKeys.push(header);
-                   break;
-                 case "file":
-                   setFileKey(header);
-                   stringKeys.push(header);
-                   break;
-                 case "filter":
-                   stringKeys.push(header);
-                   break;
-               }
-             });
-             
-             setStringKeys(stringKeys);
-             setNumberKeys(numberKeys);
-             setAllKeys(allKeys);
+          if (!isTypeRow || !hasName) {
+            alert("Invalid CSV format. The second row must specify data types and must include at least one 'name' column.");
+            if (dataFileInputRef.current) dataFileInputRef.current.value = "";
+            return;
           }
+          
+          startIdx = 2;
+          types = {};
+          headers.forEach((header, index) => {
+            types![header] = row2[index] || "";
+          });
+          
+          const numberKeys: string[] = [];
+          const stringKeys: string[] = [];
+          const allKeys: string[] = [...headers];
+          
+          headers.forEach((header, index) => {
+            const type = types![header].toLowerCase();
+            const baseType = type.endsWith("!") ? type.slice(0, -1) : type;
+            
+            switch (baseType) {
+              case "image":
+                setImageKey(header);
+                break;
+              case "video":
+                setVideoKey(header);
+                stringKeys.push(header);
+                break;
+              case "link":
+                setLinkKey(header);
+                stringKeys.push(header);
+                break;
+              case "name":
+                setCardKey(header);
+                setNameKey(header);
+                stringKeys.push(header);
+                break;
+              case "info":
+                stringKeys.push(header);
+                break;
+              case "criterion":
+                numberKeys.push(header);
+                break;
+              case "file":
+                setFileKey(header);
+                stringKeys.push(header);
+                break;
+              case "filter":
+                stringKeys.push(header);
+                break;
+            }
+          });
+          
+          setStringKeys(stringKeys);
+          setNumberKeys(numberKeys);
+          setAllKeys(allKeys);
+        } else {
+          alert("Invalid CSV format. The file must contain headers and a second row specifying data types.");
+          if (dataFileInputRef.current) dataFileInputRef.current.value = "";
+          return;
         }
         
         for (let i = startIdx; i < lines.length; i++) {
