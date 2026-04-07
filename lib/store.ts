@@ -334,8 +334,13 @@ export const useWeightPanelStore = create<
         }
       },
       // Update weightSortState when ever weightSort is updated
-      setWeightSortState: (weightSortState: { [key: string]: boolean }) =>
-        set({ weightSortState }),
+      setWeightSortState: (weightSortState: { [key: string]: boolean }) => {
+        set({ weightSortState });
+        const itemDataStore = useItemDataStore.getState();
+        if (itemDataStore.items.length > 0) {
+          itemDataStore.setGridItems(itemDataStore.items);
+        }
+      },
     }),
     { name: "weight-panel-store", skipHydration: true },
   ),
