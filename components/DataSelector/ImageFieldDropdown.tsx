@@ -21,7 +21,7 @@ const ImageFieldDropdown = ({
           <div
             tabIndex={0}
             role="button"
-            className="btn btn-sm btn-neutral bg-white shadow-none hover:bg-gray-100 border border-gray-100 w-72 justify-start overflow-x-auto whitespace-nowrap [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+            className="btn btn-sm btn-neutral bg-white shadow-none hover:bg-gray-100 border border-gray-100 w-72 justify-start overflow-x-auto whitespace-nowrap scrollbar-hide"
           >
             <span className="text-gray-400 font-medium">Image Link: </span>
             <span className="text-gray-800">

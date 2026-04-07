@@ -160,16 +160,16 @@ const Item = ({
           <h2
             className={cn(
               noto_serif.className,
-              "card-title flex justify-between w-48 overflow-x-auto whitespace-nowrap text-gray-800 text-xs",
+              "card-title flex justify-between w-48 overflow-x-auto whitespace-nowrap text-gray-800 text-xs scrollbar-hide",
             )}
           >
             {cardKey ? item[cardKey] : item["id"]}
           </h2>
         </div>
 
-        <div className="card-actions justify-start flex gap-1">
+        <div className="card-actions justify-start flex gap-1 overflow-x-auto flex-nowrap scrollbar-hide">
           {sortTag && (
-            <div className="bg-sky-100 text-sky-800 text-2xs px-2.5 py-0.5 rounded">
+            <div className="bg-sky-100 text-sky-800 text-2xs px-2.5 py-0.5 rounded whitespace-nowrap">
               {capitalizeWords(sortTag)}: {_safeSortTag(customSort)}
             </div>
           )}
