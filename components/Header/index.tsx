@@ -17,7 +17,15 @@ type HeaderProps = {
 
 const Header = ({ onDataLoad }: HeaderProps) => {
   const { rankItems, items } = useItemDataStore();
-  const { sheetLink } = useSharedConfigStore();
+  const {
+    sheetLink,
+    imageKey,
+    nameKey,
+    numberKeys,
+    stringKeys,
+    videoKey,
+    fileKey,
+  } = useSharedConfigStore();
   const { dataset } = useStudyManagerStore();
 
   const handleExport = () => {
@@ -30,6 +38,18 @@ const Header = ({ onDataLoad }: HeaderProps) => {
     );
 
     let csvContent = allKeys.join(",") + "\n";
+
+    const typeRow = allKeys.map(key => {
+      if (key === imageKey) return "image";
+      if (key === nameKey) return "name";
+      if (key === videoKey) return "video";
+      if (key === fileKey) return "file";
+      if (numberKeys.includes(key)) return "criterion";
+      if (stringKeys.includes(key)) return "info";
+      return "";
+    }).join(",") + "\n";
+
+    csvContent += typeRow;
 
     dataToExport.forEach((item) => {
       const row = allKeys

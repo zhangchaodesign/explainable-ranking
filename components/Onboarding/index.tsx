@@ -32,10 +32,22 @@ const DATASETS: { value: DatasetType; label: string }[] = [
 
 const Onboarding = ({ onDataLoad }: OnboardingProps) => {
   const { dataset, setDataset } = useStudyManagerStore();
-  const { sheetLink, setSheetLink } = useSharedConfigStore();
+  const {
+    sheetLink,
+    setSheetLink,
+    setImageKey,
+    setVideoKey,
+    setLinkKey,
+    setFileKey,
+    setNumberKeys,
+    setStringKeys,
+    setCardKey,
+    setNameKey,
+    setAllKeys,
+  } = useSharedConfigStore();
   const { aiEnabled, setAiEnabled, apiKey, setApiKey } = useOpenAIAPI();
   const [apiKeyError, setApiKeyError] = useState(false);
-  const [uploadedFileData, setUploadedFileData] = useState<{name: string, data: any[]} | null>(null);
+  const [uploadedFileData, setUploadedFileData] = useState<{name: string, data: any[], types?: { [key: string]: string }} | null>(null);
 
   const {
     setSpreadsheetId,
@@ -62,16 +74,13 @@ const Onboarding = ({ onDataLoad }: OnboardingProps) => {
         const headers = lines[0].split(',').map(h => h.trim());
         const data: any[] = [];
         
-        for (let i = 1; i < lines.length; i++) {
-          if (!lines[i].trim()) continue;
-          
+        const parseRow = (line: string) => {
           let inQuotes = false;
           let currentField = '';
           const row: string[] = [];
-          
-          for (let c = 0; c < lines[i].length; c++) {
-            const char = lines[i][c];
-            if (char === '"' && lines[i][c+1] === '"') {
+          for (let c = 0; c < line.length; c++) {
+            const char = line[c];
+            if (char === '"' && line[c+1] === '"') {
               currentField += '"';
               c++;
             } else if (char === '"') {
@@ -84,6 +93,75 @@ const Onboarding = ({ onDataLoad }: OnboardingProps) => {
             }
           }
           row.push(currentField);
+          return row;
+        };
+
+        let startIdx = 1;
+        let types: { [key: string]: string } | undefined = undefined;
+
+        if (lines.length > 1) {
+          const row2 = parseRow(lines[1]);
+          const validTypes = new Set(['image', 'video', 'link', 'name', 'info', 'criterion', 'file', 'filter', '']);
+          const isTypeRow = row2.every(t => validTypes.has(t.toLowerCase().trim().replace(/!$/, '')));
+          
+          if (isTypeRow && row2.some(t => t.trim() !== '')) {
+             startIdx = 2;
+             types = {};
+             headers.forEach((header, index) => {
+               types![header] = row2[index] || "";
+             });
+             
+             const numberKeys: string[] = [];
+             const stringKeys: string[] = [];
+             const allKeys: string[] = [...headers];
+             
+             headers.forEach((header, index) => {
+               const type = types![header].toLowerCase();
+               const baseType = type.endsWith("!") ? type.slice(0, -1) : type;
+               
+               switch (baseType) {
+                 case "image":
+                   setImageKey(header);
+                   break;
+                 case "video":
+                   setVideoKey(header);
+                   stringKeys.push(header);
+                   break;
+                 case "link":
+                   setLinkKey(header);
+                   stringKeys.push(header);
+                   break;
+                 case "name":
+                   setCardKey(header);
+                   setNameKey(header);
+                   stringKeys.push(header);
+                   break;
+                 case "info":
+                   stringKeys.push(header);
+                   break;
+                 case "criterion":
+                   numberKeys.push(header);
+                   break;
+                 case "file":
+                   setFileKey(header);
+                   stringKeys.push(header);
+                   break;
+                 case "filter":
+                   stringKeys.push(header);
+                   break;
+               }
+             });
+             
+             setStringKeys(stringKeys);
+             setNumberKeys(numberKeys);
+             setAllKeys(allKeys);
+          }
+        }
+        
+        for (let i = startIdx; i < lines.length; i++) {
+          if (!lines[i].trim()) continue;
+          
+          const row = parseRow(lines[i]);
           
           const obj: any = {};
           headers.forEach((header, index) => {
@@ -101,7 +179,7 @@ const Onboarding = ({ onDataLoad }: OnboardingProps) => {
           data.push(obj);
         }
         
-        setUploadedFileData({ name: file.name, data });
+        setUploadedFileData({ name: file.name, data, types });
       };
       reader.readAsText(file);
     }
@@ -115,7 +193,7 @@ const Onboarding = ({ onDataLoad }: OnboardingProps) => {
     setApiKeyError(false);
 
     if (uploadedFileData) {
-      onDataLoad(uploadedFileData.data, false);
+      onDataLoad(uploadedFileData.data, false, uploadedFileData.types);
       const currentDataset = useStudyManagerStore.getState().dataset;
       eventTracker({
         action: "start study",
@@ -151,7 +229,7 @@ const Onboarding = ({ onDataLoad }: OnboardingProps) => {
         </div>
 
         {/* Setup Card */}
-        <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6 space-y-5">
+        <div className="bg-white rounded border border-gray-200 shadow-sm p-6 space-y-5">
           {/* Dataset Selection */}
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-gray-700">Dataset</label>
@@ -237,7 +315,7 @@ const Onboarding = ({ onDataLoad }: OnboardingProps) => {
                 className="hidden"
               />
               {uploadedFileData ? (
-                <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg p-2">
+                <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded p-2">
                   <div className="flex-1 overflow-hidden">
                     <p className="text-sm font-medium text-gray-700 truncate" title={uploadedFileData.name}>
                       {uploadedFileData.name}
@@ -245,7 +323,7 @@ const Onboarding = ({ onDataLoad }: OnboardingProps) => {
                     <p className="text-xs text-gray-500">{uploadedFileData.data.length} items ready</p>
                   </div>
                   <button
-                    className="btn btn-xs btn-outline"
+                    className="btn btn-xs text-gray-600"
                     onClick={() => dataFileInputRef.current?.click()}
                   >
                     Change
@@ -262,7 +340,7 @@ const Onboarding = ({ onDataLoad }: OnboardingProps) => {
                 </div>
               ) : (
                 <button
-                  className="btn btn-outline w-full text-xs"
+                  className="btn w-full text-xs"
                   onClick={() => dataFileInputRef.current?.click()}
                 >
                   Upload Data CSV
