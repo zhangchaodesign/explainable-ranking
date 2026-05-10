@@ -65,7 +65,7 @@ Your data file (CSV or TSV) must follow the format below. See an [example sheet]
 
 | UID Column | Column A | Column B | Column C |
 | --- | --- | --- | --- |
-| **index:UID** | Column A | Column B | Column C |
+| index:UID | Column A | Column B | Column C |
 | cprop:type:info | name | criterion | image |
 | cprop:weight:1 | | 1 | |
 | ABC | Item 1 | 5 | https://... |
