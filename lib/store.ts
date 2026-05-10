@@ -411,6 +411,7 @@ export type SharedConfigState = {
   fileKey: string | null;
   cardKey: string;
   nameKey: string;
+  uidKey: string | null;
   imageKey: string | null;
   numberKeys: string[];
   stringKeys: string[];
@@ -435,6 +436,7 @@ export type SharedConfigActions = {
   setFileKey: (fileKey: string | null) => void;
   setCardKey: (cardKey: string) => void;
   setNameKey: (nameKey: string) => void;
+  setUidKey: (uidKey: string | null) => void;
   setImageKey: (imageKey: string | null) => void;
   setNumberKeys: (keys: string[]) => void;
   setStringKeys: (keys: string[]) => void;
@@ -462,6 +464,7 @@ export const useSharedConfigStore = create<
       isHoverOnScatterPlot: false,
       cardKey: "id",
       nameKey: "name",
+      uidKey: null,
       imageKey: null,
       videoKey: null,
       linkKey: null,
@@ -482,6 +485,7 @@ export const useSharedConfigStore = create<
         set({ isHoverOnScatterPlot }),
       setCardKey: (cardKey) => set({ cardKey }),
       setNameKey: (nameKey) => set({ nameKey }),
+      setUidKey: (uidKey) => set({ uidKey }),
       setImageKey: (imageKey) => set({ imageKey }),
       setVideoKey: (videoKey) => set({ videoKey }),
       setLinkKey: (linkKey) => set({ linkKey }),

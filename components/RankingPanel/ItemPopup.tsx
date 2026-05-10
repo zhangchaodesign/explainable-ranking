@@ -27,7 +27,7 @@ const ItemPopup: React.FC<ItemPopupProps> = ({
   onClose,
   position,
 }) => {
-  const { cardKey, selectedItemID, setSelectedItemID } = useSharedConfigStore();
+  const { cardKey, selectedItemID, setSelectedItemID, imageKey } = useSharedConfigStore();
   const { showCriteriaPanel } = useCriteriaPanelStore();
   const { isInfoOpen } = useInfoPanelConfigStore();
   const { weightSort } = useWeightPanelStore();
@@ -278,7 +278,7 @@ const ItemPopup: React.FC<ItemPopupProps> = ({
                         .map((item) => (
                           <img
                             key={item["id"]}
-                            src={item["image"] as string}
+                            src={(imageKey ? item[imageKey] : "") as string}
                             alt=""
                             className="w-8 h-8 object-cover rounded-sm cursor-pointer opacity-60 hover:outline outline-2 outline-offset-1 outline-neutral hover:opacity-100"
                             onMouseEnter={() => {

@@ -72,14 +72,17 @@ export default function Home() {
   const [isDataSelectorOpen, setIsDataSelectorOpen] = useState(false);
   const [uploadedData, setUploadedData] = useState<DataPoint[]>([]);
   const [dataTypes, setDataTypes] = useState<{ [key: string]: string }>({});
+  const [defaultWeights, setDefaultWeights] = useState<{ [key: string]: number }>({});
   const handleDataLoad = (
     data: DataPoint[],
     _isDefaultData: boolean,
     types?: { [key: string]: string },
+    weights?: { [key: string]: number },
   ) => {
     setIsDataSelectorOpen(true);
     setUploadedData(data);
     setDataTypes(types || {});
+    setDefaultWeights(weights || {});
   };
 
   useEffect(() => {
@@ -240,6 +243,7 @@ export default function Home() {
         <DataSelector
           uploadedData={uploadedData}
           dataTypes={dataTypes}
+          defaultWeights={defaultWeights}
           setIsDataSelectorOpen={setIsDataSelectorOpen}
         />
       )}

@@ -46,6 +46,7 @@ const Info = (props: InfoProps) => {
     linkKey,
     fileKey,
     cardKey,
+    imageKey,
     displayedStringKeys,
     setDisplayedStringKeys,
   } = useSharedConfigStore();
@@ -53,7 +54,7 @@ const Info = (props: InfoProps) => {
     (key) => key !== "id" && key !== "order",
   );
   const stringKeys = useSharedConfigStore((state) => state.stringKeys).filter(
-    (key) => key !== "image",
+    (key) => key !== imageKey,
   );
 
   // const overall = useMemo(() => {
@@ -153,14 +154,14 @@ const Info = (props: InfoProps) => {
             <Image
               className="w-full h-full object-cover"
               sizes="(max-width: 768px) 100vw, 270px"
-              src={props.item["image"] as string}
+              src={(imageKey ? props.item[imageKey] : "") as string}
               alt=""
               fill
               unoptimized
             />
             <a
               href={
-                (linkKey ? props.item[linkKey] : props.item["image"]) as string
+                (linkKey ? props.item[linkKey] : imageKey ? props.item[imageKey] : "") as string
               }
               target="_blank"
             >

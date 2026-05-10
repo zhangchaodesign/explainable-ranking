@@ -3,7 +3,6 @@ import {
   useItemDataStore,
   useSharedConfigStore,
   useStudyManagerStore,
-  useWeightPanelStore,
 } from "@/lib/store";
 import { DataPoint } from "@/lib/type";
 import { eventTracker } from "@/lib/utils";
@@ -17,6 +16,7 @@ interface DataLoaderProps {
     data: DataPoint[],
     isDefaultData: boolean,
     types?: { [key: string]: string },
+    weights?: { [key: string]: number },
   ) => void;
   onClose: React.Dispatch<React.SetStateAction<boolean>>;
 }
@@ -24,7 +24,7 @@ interface DataLoaderProps {
 const DataLoader = ({ onDataLoad, onClose }: DataLoaderProps) => {
   const { user, setUser, dataset, setDataset } = useStudyManagerStore();
   const contentRef = useRef<HTMLDivElement>(null);
-  const { rankItems, gridItems } = useItemDataStore();
+  const { gridItems } = useItemDataStore();
   const { sheetLink, setSheetLink } = useSharedConfigStore();
 
   const {
@@ -37,59 +37,6 @@ const DataLoader = ({ onDataLoad, onClose }: DataLoaderProps) => {
     applyFilterAndLoad,
     loadAllDataWithoutFilter,
   } = useGoogleSheetLoader(onDataLoad);
-
-  const handleExport = () => {
-    const columnsToExclude = ["id", "order", "chosen"];
-    let allKeys = Object.keys(rankItems[0] || {}).filter(
-      (key) => !columnsToExclude.includes(key),
-    );
-
-    let csvContent = allKeys.join(",") + "\n";
-
-    rankItems.forEach((item) => {
-      const row = allKeys
-        .map((key) => {
-          let value = item[key] !== undefined ? item[key] : "";
-
-          if (
-            typeof value === "string" &&
-            (value.includes(",") || value.includes('"') || value.includes("\n"))
-          ) {
-            value = value.replace(/"/g, '""');
-            value = `"${value}"`;
-          }
-          return value;
-        })
-        .join(",");
-
-      csvContent += row + "\n";
-    });
-
-    const encodedUri =
-      "data:text/csv;charset=utf-8," + encodeURIComponent(csvContent);
-    const downloadAnchorNode = document.createElement("a");
-    downloadAnchorNode.setAttribute("href", encodedUri);
-    downloadAnchorNode.setAttribute("download", "data.csv");
-    document.body.appendChild(downloadAnchorNode);
-    downloadAnchorNode.click();
-    downloadAnchorNode.remove();
-
-    setTimeout(() => {
-      const weightSort = useWeightPanelStore.getState().weightSort;
-      const weightKeys = Object.keys(weightSort);
-      const weightCsvContent = weightKeys
-        .map((key) => `${key},${weightSort[key]}`)
-        .join("\n");
-      const weightEncodedUri =
-        "data:text/csv;charset=utf-8," + encodeURIComponent(weightCsvContent);
-      const weightDownloadAnchorNode = document.createElement("a");
-      weightDownloadAnchorNode.setAttribute("href", weightEncodedUri);
-      weightDownloadAnchorNode.setAttribute("download", "weights.csv");
-      document.body.appendChild(weightDownloadAnchorNode);
-      weightDownloadAnchorNode.click();
-      weightDownloadAnchorNode.remove();
-    }, 500);
-  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -290,25 +237,6 @@ const DataLoader = ({ onDataLoad, onClose }: DataLoaderProps) => {
             </button>
           </div>
         </div>
-      )}
-      {rankItems.length !== 0 && (
-        <button
-          onClick={() => {
-            handleExport();
-            const currentUser = useStudyManagerStore.getState().user;
-            const currentDataset = useStudyManagerStore.getState().dataset;
-            eventTracker({
-              action: "end study",
-              data: {
-                id: currentUser,
-                dataset: currentDataset,
-              },
-            });
-          }}
-          className="btn btn-sm shadow-none text-xs w-full"
-        >
-          Export Data
-        </button>
       )}
     </div>
   );

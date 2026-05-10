@@ -18,6 +18,7 @@ import { normalizeValue } from "@/lib/utils";
 interface DataSelectorProps {
   uploadedData: DataPoint[];
   dataTypes?: { [key: string]: string };
+  defaultWeights?: { [key: string]: number };
   setIsDataSelectorOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
@@ -139,7 +140,7 @@ const DataSelector = (props: DataSelectorProps) => {
 
     let _customScoreWeight: { [key: string]: number } = {};
     selectedNumberFields.map((key) => {
-      _customScoreWeight[key] = 1;
+      _customScoreWeight[key] = props.defaultWeights?.[key] ?? 1;
     });
     setWeightSort(_customScoreWeight);
     setWeightSortState(
@@ -192,7 +193,7 @@ const DataSelector = (props: DataSelectorProps) => {
         });
 
         if (selectedImageField && item[selectedImageField]) {
-          newItem["image"] = item[selectedImageField] as string;
+          newItem[selectedImageField] = item[selectedImageField] as string;
         }
 
         return newItem;

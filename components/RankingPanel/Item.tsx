@@ -83,6 +83,7 @@ const Item = ({
     setSelectedItemID,
     isHoverOnScatterPlot,
     visualizationType,
+    imageKey,
   } = useSharedConfigStore();
   const numberKeys = useSharedConfigStore((state) => state.numberKeys).filter(
     (key) => key !== "id" && key !== "order",
@@ -303,9 +304,9 @@ const Item = ({
             "w-24 aspect-square overflow-hidden rounded-l rounded-r-none relative",
           )}
         >
-          {inView && item["image"] && (
+          {inView && imageKey && item[imageKey] && (
             <Image
-              src={item["image"] as string}
+              src={imageKey && item[imageKey] as string}
               alt=""
               fill
               className="object-cover"

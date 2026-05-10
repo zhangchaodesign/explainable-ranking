@@ -281,6 +281,7 @@ export async function sortDataPointsBySimilarity(
   dataPoints: DataPoint[],
   text: string,
   relevanceField: string,
+  imageKey?: string | null,
 ): Promise<
   {
     id: number;
@@ -294,10 +295,11 @@ export async function sortDataPointsBySimilarity(
     score: number;
   }[] = [];
   if (relevanceField === "image") {
+    const imgKey = imageKey || "image";
     results = await Promise.all(
       dataPoints.map(async (dataPoint) => {
         let similarityImage: number | undefined = undefined;
-        similarityImage = await clipScore(dataPoint.image as string, text);
+        similarityImage = await clipScore(dataPoint[imgKey] as string, text);
         if (
           similarityImage === undefined ||
           similarityImage === null ||

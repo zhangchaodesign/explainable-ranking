@@ -13,6 +13,6 @@ export const DATASET_SHEETS: Record<DatasetType, string> = {
   video: "1lOkVP7J-Dd8Sw-6iqNn5KUzN3l2dOj3GDQV-ewhRblI",
   minutes: "15kcl5QcFRtrnhJuWmGSADLkGotbyurKR6wuv9HJAj2M",
   vacation: "17OKQWvpRVUR8JnIFfGxmBhN1oLq-C8dAaXrwRsT8Wxo",
-  demo: "1_Tl_y8V4dNu41jjzU5P9Y4YRRnwHx-VTHBLe07ZXqEI",
+  demo: "1WOgYKSJMVTJcHmguyRtQBwJ9iWesat55N6mFIp5uXfs",
   grading: "1kUw5Rib9Pax3QGVVG-PS792MdHWpYaf4QOFvqRtZHdY",
 };

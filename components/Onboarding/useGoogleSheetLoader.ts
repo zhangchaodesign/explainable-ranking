@@ -2,11 +2,13 @@ import { useState } from "react";
 import { useSharedConfigStore, useStudyManagerStore } from "@/lib/store";
 import { DataPoint } from "@/lib/type";
 import { DATASET_SHEETS } from "@/lib/constants";
+import { preprocessSheetRows } from "./preprocessSheetRows";
 
 type OnDataLoad = (
   data: DataPoint[],
   isDefaultData: boolean,
   types?: { [key: string]: string },
+  weights?: { [key: string]: number },
 ) => void;
 
 export function extractSpreadsheetId(link: string): string | null {
@@ -25,6 +27,7 @@ export function useGoogleSheetLoader(onDataLoad: OnDataLoad) {
     setStringKeys,
     setCardKey,
     setNameKey,
+    setUidKey,
     setAllKeys,
     sheetLink,
   } = useSharedConfigStore();
@@ -46,13 +49,24 @@ export function useGoogleSheetLoader(onDataLoad: OnDataLoad) {
     rows: any[][],
     applyFilter: boolean = false,
   ) => {
-    if (rows.length < 2) {
-      console.error("Not enough rows in the data");
-      return { data: [], types: {}, filterKeys: [], allData: [] };
+    // Preprocess to handle index:/cprop: format
+    const { rows: processedRows, indexColumn, defaultWeights } =
+      preprocessSheetRows(rows);
+
+    if (!indexColumn) {
+      alert("Invalid data format: The first column header must have an 'index:' prefix to mark the UID column (e.g., 'index:UID').");
+      return { data: [], types: {}, filterKeys: [], allData: [], defaultWeights: {} };
     }
 
-    const headers = rows[0];
-    const types = rows[1];
+    setUidKey(indexColumn);
+
+    if (processedRows.length < 2) {
+      console.error("Not enough rows in the data");
+      return { data: [], types: {}, filterKeys: [], allData: [], defaultWeights: {} };
+    }
+
+    const headers = processedRows[0];
+    const types = processedRows[1];
 
     const numberKeys: string[] = [];
     const stringKeys: string[] = [];
@@ -102,7 +116,7 @@ export function useGoogleSheetLoader(onDataLoad: OnDataLoad) {
     setNumberKeys(numberKeys);
     setAllKeys(allKeys);
 
-    const dataRows = rows.slice(2);
+    const dataRows = processedRows.slice(2);
     const processedData = dataRows.map((row: any[]) => {
       const dataPoint: any = {};
       headers.forEach((header: string, colIndex: number) => {
@@ -137,6 +151,8 @@ export function useGoogleSheetLoader(onDataLoad: OnDataLoad) {
       types: typesMapping,
       filterKeys,
       allData: processedData,
+      defaultWeights,
+      indexColumn,
     };
   };
 
@@ -185,7 +201,7 @@ export function useGoogleSheetLoader(onDataLoad: OnDataLoad) {
         setSelectedFilters(initialFilters);
         setIsFilterStage(true);
       } else {
-        onDataLoad(result.data, false, result.types);
+        onDataLoad(result.data, false, result.types, result.defaultWeights);
       }
     } catch (error) {
       console.error("Error fetching Google Sheets data:", error);
@@ -196,21 +212,21 @@ export function useGoogleSheetLoader(onDataLoad: OnDataLoad) {
 
   const applyFilterAndLoad = () => {
     if (!rawSheetData) return;
-    const { data: processedData, types } = processGoogleSheetData(
+    const { data: processedData, types, defaultWeights } = processGoogleSheetData(
       rawSheetData,
       true,
     );
-    onDataLoad(processedData, false, types);
+    onDataLoad(processedData, false, types, defaultWeights);
     setIsFilterStage(false);
   };
 
   const loadAllDataWithoutFilter = () => {
     if (!rawSheetData) return;
-    const { data: processedData, types } = processGoogleSheetData(
+    const { data: processedData, types, defaultWeights } = processGoogleSheetData(
       rawSheetData,
       false,
     );
-    onDataLoad(processedData, false, types);
+    onDataLoad(processedData, false, types, defaultWeights);
     setIsFilterStage(false);
   };
 

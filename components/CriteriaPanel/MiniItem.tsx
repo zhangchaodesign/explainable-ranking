@@ -49,6 +49,7 @@ const Item = ({
     selectedItemID,
     isHoverOnScatterPlot,
     conflictingIds,
+    imageKey,
   } = useSharedConfigStore();
 
   const { ref, inView } = useInView({
@@ -158,9 +159,9 @@ const Item = ({
         ref={ref}
         className={cn("w-full overflow-hidden relative h-24 rounded-t-[4px]")}
       >
-        {inView && item["image"] && (
+        {inView && imageKey && item[imageKey] && (
           <Image
-            src={item["image"] as string}
+            src={imageKey && item[imageKey] as string}
             alt=""
             fill
             className="object-cover border-b-2 border-gray-100"

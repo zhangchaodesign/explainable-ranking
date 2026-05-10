@@ -40,7 +40,7 @@ const ExplainableStackedBarChart = ({
 
   const { rankItems } = useItemDataStore();
   const { weightSort } = useWeightPanelStore();
-  const { selectedItemID, setSelectedItemID, nameKey } = useSharedConfigStore();
+  const { selectedItemID, setSelectedItemID, nameKey, imageKey } = useSharedConfigStore();
   const { setInfoId, setIsInfoOpen, setHighlightedPair, highlightedPair } =
     useInfoPanelConfigStore();
   const { criteriaData } = useCriteriaDataStore();
@@ -108,7 +108,7 @@ const ExplainableStackedBarChart = ({
             ? aggregateScore(item).score
             : aggregateScore(item).weightedScores[rankBy],
         rankChange: 0,
-        image: item.image ? (item.image as string) : "",
+        image: imageKey && item[imageKey] ? (item[imageKey] as string) : "",
       }));
     } else {
       _data = rankItems.map((item) => ({
@@ -125,7 +125,7 @@ const ExplainableStackedBarChart = ({
             ? aggregateScore(item, weights).score
             : aggregateScore(item, weights).weightedScores[rankBy],
         rankChange: 0,
-        image: item.image ? (item.image as string) : "",
+        image: imageKey && item[imageKey] ? (item[imageKey] as string) : "",
       }));
     }
 

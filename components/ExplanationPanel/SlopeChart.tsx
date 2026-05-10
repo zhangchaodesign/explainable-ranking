@@ -62,7 +62,7 @@ const SlopeChart = ({ rankBy, weights, className = "" }: SlopeChartProps) => {
   const { rankItems } = useItemDataStore();
   const { svmScores } = useSVMResultStore();
   const { weightSort, weightSortState } = useWeightPanelStore();
-  const { selectedItemID, setSelectedItemID, nameKey, setConflictingIds } =
+  const { selectedItemID, setSelectedItemID, nameKey, imageKey, setConflictingIds } =
     useSharedConfigStore();
 
   const [higherGroup, setHigherGroup] = useState<number[]>([]);
@@ -129,7 +129,7 @@ const SlopeChart = ({ rankBy, weights, className = "" }: SlopeChartProps) => {
             ? aggregateScore(item).score
             : aggregateScore(item).weightedScores[rankBy],
         rankChange: 0,
-        image: item.image ? (item.image as string) : "",
+        image: imageKey && item[imageKey] ? (item[imageKey] as string) : "",
       }));
     } else {
       _data = rankItems.map((item) => ({
@@ -146,7 +146,7 @@ const SlopeChart = ({ rankBy, weights, className = "" }: SlopeChartProps) => {
             ? aggregateScore(item, weights).score
             : aggregateScore(item, weights).weightedScores[rankBy],
         rankChange: 0,
-        image: item.image ? (item.image as string) : "",
+        image: imageKey && item[imageKey] ? (item[imageKey] as string) : "",
       }));
     }
 

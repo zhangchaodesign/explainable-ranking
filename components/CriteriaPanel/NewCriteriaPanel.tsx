@@ -17,7 +17,7 @@ interface NewCriteriaPanelProps {
 }
 
 const NewCriteriaPanel = ({ onClose }: NewCriteriaPanelProps) => {
-  const { numberKeys, setNumberKeys } = useSharedConfigStore();
+  const { numberKeys, setNumberKeys, imageKey } = useSharedConfigStore();
   const { setIsLoading } = useIsLoading();
   const { items } = useItemDataStore();
   const { criteriaData, setCriteriaData } = useCriteriaDataStore();
@@ -49,7 +49,7 @@ const NewCriteriaPanel = ({ onClose }: NewCriteriaPanelProps) => {
   });
 
   const stringKeys = useSharedConfigStore((state) => state.stringKeys).filter(
-    (key) => key !== "image",
+    (key) => key !== imageKey,
   );
   const handleStringClick = (key: string) => {
     setNewCriteria({
@@ -70,6 +70,7 @@ const NewCriteriaPanel = ({ onClose }: NewCriteriaPanelProps) => {
         items,
         newCriteria.name + ": " + newCriteria.explanation,
         newCriteria.relevance,
+        imageKey,
       ).then((res) => {
         similarity = res;
         sortedItems = [...items].sort((a, b) => {

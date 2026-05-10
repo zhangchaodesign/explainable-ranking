@@ -21,6 +21,7 @@ const Header = ({ onDataLoad }: HeaderProps) => {
     sheetLink,
     imageKey,
     nameKey,
+    uidKey,
     numberKeys,
     stringKeys,
     videoKey,
@@ -32,68 +33,69 @@ const Header = ({ onDataLoad }: HeaderProps) => {
     const dataToExport = rankItems.length > 0 ? rankItems : items;
     if (dataToExport.length === 0) return;
 
+    const weightSort = useWeightPanelStore.getState().weightSort;
     const columnsToExclude = ["id", "order", "chosen"];
-    const allKeys = Object.keys(dataToExport[0] || {}).filter(
+    let allKeys = Object.keys(dataToExport[0] || {}).filter(
       (key) => !columnsToExclude.includes(key),
     );
 
-    let csvContent = allKeys.join(",") + "\n";
+    // Put UID column first
+    const indexCol = uidKey || nameKey || allKeys[0];
+    if (indexCol && allKeys.includes(indexCol)) {
+      allKeys = [indexCol, ...allKeys.filter((key) => key !== indexCol)];
+    }
 
-    const typeRow = allKeys.map(key => {
-      if (key === imageKey) return "image";
-      if (key === nameKey) return "name";
+    const getType = (key: string): string => {
+      if (imageKey && key === imageKey) return "image";
       if (key === videoKey) return "video";
       if (key === fileKey) return "file";
+      if (key === nameKey) return "name";
       if (numberKeys.includes(key)) return "criterion";
       if (stringKeys.includes(key)) return "info";
-      return "";
-    }).join(",") + "\n";
+      return "info";
+    };
 
-    csvContent += typeRow;
+    const defaultType = "info";
+    const defaultWeight = 1;
+    const TAB = "\t";
 
-    dataToExport.forEach((item) => {
-      const row = allKeys
+    const headerRow = allKeys
+      .map((key) => (key === indexCol ? `index:${key}` : key))
+      .join(TAB);
+
+    const typeRow = allKeys
+      .map((key, i) => (i === 0 ? `cprop:type:${defaultType}` : getType(key)))
+      .join(TAB);
+
+    const weightRow = allKeys
+      .map((key, i) => {
+        if (i === 0) return `cprop:weight:${defaultWeight}`;
+        if (numberKeys.includes(key))
+          return weightSort[key] !== undefined ? weightSort[key] : "";
+        return "";
+      })
+      .join(TAB);
+
+    const dataLines = dataToExport.map((item) =>
+      allKeys
         .map((key) => {
-          let value = item[key] !== undefined ? item[key] : "";
-
-          if (
-            typeof value === "string" &&
-            (value.includes(",") || value.includes('"') || value.includes("\n"))
-          ) {
-            value = value.replace(/"/g, '""');
-            value = `"${value}"`;
-          }
-          return value;
+          const val = item[key];
+          return val !== undefined && val !== null ? val : "";
         })
-        .join(",");
+        .join(TAB),
+    );
 
-      csvContent += row + "\n";
-    });
+    const tsvContent = [headerRow, typeRow, weightRow, ...dataLines].join("\n");
 
     const encodedUri =
-      "data:text/csv;charset=utf-8," + encodeURIComponent(csvContent);
+      "data:text/tab-separated-values;charset=utf-8," +
+      encodeURIComponent(tsvContent);
     const downloadAnchorNode = document.createElement("a");
     downloadAnchorNode.setAttribute("href", encodedUri);
-    downloadAnchorNode.setAttribute("download", "data.csv");
+    downloadAnchorNode.setAttribute("download", "data.tsv");
     document.body.appendChild(downloadAnchorNode);
     downloadAnchorNode.click();
     downloadAnchorNode.remove();
-
-    setTimeout(() => {
-      const weightSort = useWeightPanelStore.getState().weightSort;
-      const weightKeys = Object.keys(weightSort);
-      const weightCsvContent = weightKeys
-        .map((key) => `${key},${weightSort[key]}`)
-        .join("\n");
-      const weightEncodedUri =
-        "data:text/csv;charset=utf-8," + encodeURIComponent(weightCsvContent);
-      const weightDownloadAnchorNode = document.createElement("a");
-      weightDownloadAnchorNode.setAttribute("href", weightEncodedUri);
-      weightDownloadAnchorNode.setAttribute("download", "weights.csv");
-      document.body.appendChild(weightDownloadAnchorNode);
-      weightDownloadAnchorNode.click();
-      weightDownloadAnchorNode.remove();
-    }, 500);
   };
 
   return (

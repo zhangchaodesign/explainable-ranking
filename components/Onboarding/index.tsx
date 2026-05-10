@@ -10,6 +10,7 @@ import {
   useGoogleSheetLoader,
   extractSpreadsheetId,
 } from "@/components/Onboarding/useGoogleSheetLoader";
+import { preprocessSheetRows } from "@/components/Onboarding/preprocessSheetRows";
 import { DatasetType } from "@/lib/constants";
 
 interface OnboardingProps {
@@ -17,6 +18,7 @@ interface OnboardingProps {
     data: DataPoint[],
     isDefaultData: boolean,
     types?: { [key: string]: string },
+    weights?: { [key: string]: number },
   ) => void;
 }
 
@@ -43,11 +45,12 @@ const Onboarding = ({ onDataLoad }: OnboardingProps) => {
     setStringKeys,
     setCardKey,
     setNameKey,
+    setUidKey,
     setAllKeys,
   } = useSharedConfigStore();
   const { aiEnabled, setAiEnabled, apiKey, setApiKey } = useOpenAIAPI();
   const [apiKeyError, setApiKeyError] = useState(false);
-  const [uploadedFileData, setUploadedFileData] = useState<{name: string, data: any[], types?: { [key: string]: string }} | null>(null);
+  const [uploadedFileData, setUploadedFileData] = useState<{name: string, data: any[], types?: { [key: string]: string }, weights?: { [key: string]: number }} | null>(null);
 
   const {
     setSpreadsheetId,
@@ -71,10 +74,15 @@ const Onboarding = ({ onDataLoad }: OnboardingProps) => {
         const text = event.target?.result as string;
         const lines = text.split('\n');
         if (lines.length < 1) return;
-        const headers = lines[0].split(',').map(h => h.trim());
-        const data: any[] = [];
-        
+
+        // Auto-detect delimiter: if first line contains tabs, use tab; otherwise comma
+        const delimiter = lines[0].includes('\t') ? '\t' : ',';
+
         const parseRow = (line: string) => {
+          if (delimiter === '\t') {
+            return line.split('\t');
+          }
+          // CSV quote-aware parsing for comma delimiter
           let inQuotes = false;
           let currentField = '';
           const row: string[] = [];
@@ -96,85 +104,101 @@ const Onboarding = ({ onDataLoad }: OnboardingProps) => {
           return row;
         };
 
-        let startIdx = 1;
-        let types: { [key: string]: string } | undefined = undefined;
+        // Parse all lines into a 2D array
+        const rawRows: any[][] = lines
+          .filter((line) => line.trim() !== '')
+          .map((line) => parseRow(line).map((cell) => cell.trim()));
 
-        if (lines.length > 1) {
-          const row2 = parseRow(lines[1]);
-          const validTypes = new Set(['image', 'video', 'link', 'name', 'info', 'criterion', 'file', 'filter', '']);
-          const isTypeRow = row2.every(t => validTypes.has(t.toLowerCase().trim().replace(/!$/, '')));
-          const hasName = row2.some(t => t.toLowerCase().trim().replace(/!$/, '') === 'name');
-          
-          if (!isTypeRow || !hasName) {
-            alert("Invalid CSV format. The second row must specify data types and must include at least one 'name' column.");
-            if (dataFileInputRef.current) dataFileInputRef.current.value = "";
-            return;
-          }
-          
-          startIdx = 2;
-          types = {};
-          headers.forEach((header, index) => {
-            types![header] = row2[index] || "";
-          });
-          
-          const numberKeys: string[] = [];
-          const stringKeys: string[] = [];
-          const allKeys: string[] = [...headers];
-          
-          headers.forEach((header, index) => {
-            const type = types![header].toLowerCase();
-            const baseType = type.endsWith("!") ? type.slice(0, -1) : type;
-            
-            switch (baseType) {
-              case "image":
-                setImageKey(header);
-                break;
-              case "video":
-                setVideoKey(header);
-                stringKeys.push(header);
-                break;
-              case "link":
-                setLinkKey(header);
-                stringKeys.push(header);
-                break;
-              case "name":
-                setCardKey(header);
-                setNameKey(header);
-                stringKeys.push(header);
-                break;
-              case "info":
-                stringKeys.push(header);
-                break;
-              case "criterion":
-                numberKeys.push(header);
-                break;
-              case "file":
-                setFileKey(header);
-                stringKeys.push(header);
-                break;
-              case "filter":
-                stringKeys.push(header);
-                break;
-            }
-          });
-          
-          setStringKeys(stringKeys);
-          setNumberKeys(numberKeys);
-          setAllKeys(allKeys);
-        } else {
-          alert("Invalid CSV format. The file must contain headers and a second row specifying data types.");
+        // Preprocess to handle index:/cprop: format
+        const { rows: processedRows, indexColumn, defaultWeights } = preprocessSheetRows(rawRows);
+
+        if (!indexColumn) {
+          alert("Invalid file format: The first column header must have an 'index:' prefix to mark the UID column (e.g., 'index:UID').");
           if (dataFileInputRef.current) dataFileInputRef.current.value = "";
           return;
         }
-        
-        for (let i = startIdx; i < lines.length; i++) {
-          if (!lines[i].trim()) continue;
-          
-          const row = parseRow(lines[i]);
-          
+
+        setUidKey(indexColumn);
+
+        if (processedRows.length < 2) {
+          alert("Invalid CSV format. The file must contain headers and a type row.");
+          if (dataFileInputRef.current) dataFileInputRef.current.value = "";
+          return;
+        }
+
+        const headers = processedRows[0] as string[];
+        const typeRow = processedRows[1] as string[];
+
+        // Validate type row
+        const validTypes = new Set(['image', 'video', 'link', 'name', 'info', 'criterion', 'file', 'filter', '']);
+        const isTypeRow = typeRow.every(t => validTypes.has(String(t).toLowerCase().replace(/!$/, '')));
+        const hasName = typeRow.some(t => String(t).toLowerCase().replace(/!$/, '') === 'name');
+
+        if (!isTypeRow || !hasName) {
+          alert("Invalid CSV format. The type row must specify valid data types and must include at least one 'name' column.");
+          if (dataFileInputRef.current) dataFileInputRef.current.value = "";
+          return;
+        }
+
+        // Build types mapping
+        const types: { [key: string]: string } = {};
+        headers.forEach((header, index) => {
+          types[header] = typeRow[index] || "";
+        });
+
+        // Configure keys based on types
+        const numberKeys: string[] = [];
+        const stringKeys: string[] = [];
+        const allKeys: string[] = [...headers];
+
+        headers.forEach((header) => {
+          const type = types[header].toLowerCase();
+          const baseType = type.endsWith("!") ? type.slice(0, -1) : type;
+
+          switch (baseType) {
+            case "image":
+              setImageKey(header);
+              break;
+            case "video":
+              setVideoKey(header);
+              stringKeys.push(header);
+              break;
+            case "link":
+              setLinkKey(header);
+              stringKeys.push(header);
+              break;
+            case "name":
+              setCardKey(header);
+              setNameKey(header);
+              stringKeys.push(header);
+              break;
+            case "info":
+              stringKeys.push(header);
+              break;
+            case "criterion":
+              numberKeys.push(header);
+              break;
+            case "file":
+              setFileKey(header);
+              stringKeys.push(header);
+              break;
+            case "filter":
+              stringKeys.push(header);
+              break;
+          }
+        });
+
+        setStringKeys(stringKeys);
+        setNumberKeys(numberKeys);
+        setAllKeys(allKeys);
+
+        // Parse data rows (starting from row 2)
+        const data: any[] = [];
+        for (let i = 2; i < processedRows.length; i++) {
+          const row = processedRows[i];
           const obj: any = {};
           headers.forEach((header, index) => {
-            let val: any = row[index] !== undefined ? row[index] : '';
+            let val: any = index < row.length ? row[index] : '';
             if (typeof val === 'string' && val.startsWith('"') && val.endsWith('"')) {
               val = val.slice(1, -1);
             }
@@ -183,12 +207,12 @@ const Onboarding = ({ onDataLoad }: OnboardingProps) => {
             }
             obj[header] = val;
           });
-          
+
           if (!obj.id) obj.id = Date.now() + i;
           data.push(obj);
         }
-        
-        setUploadedFileData({ name: file.name, data, types });
+
+        setUploadedFileData({ name: file.name, data, types, weights: defaultWeights });
       };
       reader.readAsText(file);
     }
@@ -202,7 +226,7 @@ const Onboarding = ({ onDataLoad }: OnboardingProps) => {
     setApiKeyError(false);
 
     if (uploadedFileData) {
-      onDataLoad(uploadedFileData.data, false, uploadedFileData.types);
+      onDataLoad(uploadedFileData.data, false, uploadedFileData.types, uploadedFileData.weights);
       const currentDataset = useStudyManagerStore.getState().dataset;
       eventTracker({
         action: "start study",
@@ -318,7 +342,7 @@ const Onboarding = ({ onDataLoad }: OnboardingProps) => {
             <div className="flex flex-col gap-2">
               <input
                 type="file"
-                accept=".csv"
+                accept=".csv,.tsv"
                 ref={dataFileInputRef}
                 onChange={handleDataFileUpload}
                 className="hidden"
@@ -352,7 +376,7 @@ const Onboarding = ({ onDataLoad }: OnboardingProps) => {
                   className="btn w-full text-xs"
                   onClick={() => dataFileInputRef.current?.click()}
                 >
-                  Upload Data CSV
+                  Upload Data (CSV/TSV)
                 </button>
               )}
             </div>
