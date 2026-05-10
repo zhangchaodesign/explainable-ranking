@@ -28,7 +28,10 @@ const DataSelector = (props: DataSelectorProps) => {
     imageKey,
     videoKey,
     fileKey,
+    nameKey,
+    uidKey,
     setImageKey,
+    setCardKey,
     setNumberKeys,
     setStringKeys,
     setAllKeys,
@@ -78,6 +81,9 @@ const DataSelector = (props: DataSelectorProps) => {
 
   const [selectedImageField, setSelectedImageField] = useState<string | null>(
     imageKey,
+  );
+  const [selectedNameField, setSelectedNameField] = useState<string>(
+    nameKey || uidKey || "",
   );
   const [selectedNumberFields, setSelectedNumberFields] = useState<string[]>(
     thisNumberKeys.filter(shouldFieldBeEnabled),
@@ -130,6 +136,7 @@ const DataSelector = (props: DataSelectorProps) => {
 
     setAllKeys(selectedFields);
     setImageKey(selectedImageField);
+    setCardKey(selectedNameField);
     setNumberKeys(selectedNumberFields);
     setStringKeys(selectedStringFields);
     setDisplayedStringKeys(
@@ -287,6 +294,46 @@ const DataSelector = (props: DataSelectorProps) => {
           selectedImageField={selectedImageField}
           setSelectedImageField={setSelectedImageField}
         />
+
+        <div className="flex flex-col gap-3 w-64">
+          <div className="flex flex-col gap-2">
+            <div className="flex gap-2 items-center">
+              <p>Displayed Name</p>
+            </div>
+            <div className="dropdown">
+              <div
+                tabIndex={0}
+                role="button"
+                className="btn btn-sm btn-neutral bg-white shadow-none hover:bg-gray-100 border border-gray-100 w-72 justify-start overflow-x-auto whitespace-nowrap scrollbar-hide"
+              >
+                <span className="text-gray-400 font-medium">Name Field: </span>
+                <span className="text-gray-800">
+                  {selectedNameField || "Select a field"}
+                </span>
+              </div>
+              <ul
+                tabIndex={0}
+                className="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] w-full p-2 shadow gap-2 mt-1 max-h-48 flex-nowrap overflow-y-auto overflow-x-hidden"
+              >
+                {thisStringKeys.map((key) => (
+                  <li
+                    key={key}
+                    className="w-full"
+                    onClick={() => setSelectedNameField(key)}
+                  >
+                    <a
+                      className={`block w-full ${selectedNameField === key ? "active" : ""} !overflow-visible`}
+                    >
+                      <div className="flex justify-between items-center w-full min-w-0">
+                        <span className="truncate">{key}</span>
+                      </div>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
 
         {thisNumberKeys.length > 0 && (
           <NumberFields
