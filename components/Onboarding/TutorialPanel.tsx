@@ -134,7 +134,7 @@ const GuideTab = () => (
     <img
       src="/teaser_figure.jpg"
       alt="Interactive Explainable Ranking teaser"
-      className="w-full rounded-lg"
+      className="w-full"
     />
 
     {/* Steps */}
