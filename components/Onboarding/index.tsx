@@ -52,7 +52,12 @@ const Onboarding = ({ onDataLoad }: OnboardingProps) => {
   const { aiEnabled, setAiEnabled, apiKey, setApiKey } = useOpenAIAPI();
   const [apiKeyError, setApiKeyError] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
-  const [uploadedFileData, setUploadedFileData] = useState<{name: string, data: any[], types?: { [key: string]: string }, weights?: { [key: string]: number }} | null>(null);
+  const [uploadedFileData, setUploadedFileData] = useState<{
+    name: string;
+    data: any[];
+    types?: { [key: string]: string };
+    weights?: { [key: string]: number };
+  } | null>(null);
 
   const {
     setSpreadsheetId,
@@ -74,16 +79,16 @@ const Onboarding = ({ onDataLoad }: OnboardingProps) => {
       const reader = new FileReader();
       reader.onload = (event) => {
         const text = event.target?.result as string;
-        const firstLine = text.split('\n')[0] || '';
+        const firstLine = text.split("\n")[0] || "";
         if (!firstLine) return;
 
         // Auto-detect delimiter: if first line contains tabs, use tab; otherwise comma
-        const delimiter = firstLine.includes('\t') ? '\t' : ',';
+        const delimiter = firstLine.includes("\t") ? "\t" : ",";
 
         // Parse the entire text into rows, handling multiline quoted fields
         const parseCSV = (input: string): string[][] => {
           const rows: string[][] = [];
-          let currentField = '';
+          let currentField = "";
           let currentRow: string[] = [];
           let inQuotes = false;
 
@@ -108,18 +113,22 @@ const Onboarding = ({ onDataLoad }: OnboardingProps) => {
                 inQuotes = true;
               } else if (char === delimiter) {
                 currentRow.push(currentField.trim());
-                currentField = '';
-              } else if (char === '\n' || char === '\r') {
+                currentField = "";
+              } else if (char === "\n" || char === "\r") {
                 // Handle \r\n
-                if (char === '\r' && i + 1 < input.length && input[i + 1] === '\n') {
+                if (
+                  char === "\r" &&
+                  i + 1 < input.length &&
+                  input[i + 1] === "\n"
+                ) {
                   i++;
                 }
                 currentRow.push(currentField.trim());
-                if (currentRow.some(cell => cell !== '')) {
+                if (currentRow.some((cell) => cell !== "")) {
                   rows.push(currentRow);
                 }
                 currentRow = [];
-                currentField = '';
+                currentField = "";
               } else {
                 currentField += char;
               }
@@ -127,7 +136,7 @@ const Onboarding = ({ onDataLoad }: OnboardingProps) => {
           }
           // Push last field/row
           currentRow.push(currentField.trim());
-          if (currentRow.some(cell => cell !== '')) {
+          if (currentRow.some((cell) => cell !== "")) {
             rows.push(currentRow);
           }
           return rows;
@@ -136,10 +145,16 @@ const Onboarding = ({ onDataLoad }: OnboardingProps) => {
         const rawRows: any[][] = parseCSV(text);
 
         // Preprocess to handle index:/cprop: format
-        const { rows: processedRows, indexColumn, defaultWeights } = preprocessSheetRows(rawRows);
+        const {
+          rows: processedRows,
+          indexColumn,
+          defaultWeights,
+        } = preprocessSheetRows(rawRows);
 
         if (!indexColumn) {
-          alert("Invalid file format: The first column header must have an 'index:' prefix to mark the UID column (e.g., 'index:UID').");
+          alert(
+            "Invalid file format: The first column header must have an 'index:' prefix to mark the UID column (e.g., 'index:UID').",
+          );
           if (dataFileInputRef.current) dataFileInputRef.current.value = "";
           return;
         }
@@ -147,7 +162,9 @@ const Onboarding = ({ onDataLoad }: OnboardingProps) => {
         setUidKey(indexColumn);
 
         if (processedRows.length < 2) {
-          alert("Invalid CSV format. The file must contain headers and a type row.");
+          alert(
+            "Invalid CSV format. The file must contain headers and a type row.",
+          );
           if (dataFileInputRef.current) dataFileInputRef.current.value = "";
           return;
         }
@@ -156,11 +173,25 @@ const Onboarding = ({ onDataLoad }: OnboardingProps) => {
         const typeRow = processedRows[1] as string[];
 
         // Validate type row
-        const validTypes = new Set(['image', 'video', 'link', 'name', 'info', 'criterion', 'file', 'filter', '']);
-        const isTypeRow = typeRow.every(t => validTypes.has(String(t).toLowerCase().replace(/!$/, '')));
+        const validTypes = new Set([
+          "image",
+          "video",
+          "link",
+          "name",
+          "info",
+          "criterion",
+          "file",
+          "filter",
+          "",
+        ]);
+        const isTypeRow = typeRow.every((t) =>
+          validTypes.has(String(t).toLowerCase().replace(/!$/, "")),
+        );
 
         if (!isTypeRow) {
-          alert("Invalid CSV format. The type row must specify valid data types (name, criterion, image, video, link, file, info, filter).");
+          alert(
+            "Invalid CSV format. The type row must specify valid data types (name, criterion, image, video, link, file, info, filter).",
+          );
           if (dataFileInputRef.current) dataFileInputRef.current.value = "";
           return;
         }
@@ -223,11 +254,15 @@ const Onboarding = ({ onDataLoad }: OnboardingProps) => {
           const row = processedRows[i];
           const obj: any = {};
           headers.forEach((header, index) => {
-            let val: any = index < row.length ? row[index] : '';
-            if (typeof val === 'string' && val.startsWith('"') && val.endsWith('"')) {
+            let val: any = index < row.length ? row[index] : "";
+            if (
+              typeof val === "string" &&
+              val.startsWith('"') &&
+              val.endsWith('"')
+            ) {
               val = val.slice(1, -1);
             }
-            if (val !== '' && !isNaN(Number(val))) {
+            if (val !== "" && !isNaN(Number(val))) {
               val = Number(val);
             }
             obj[header] = val;
@@ -237,7 +272,12 @@ const Onboarding = ({ onDataLoad }: OnboardingProps) => {
           data.push(obj);
         }
 
-        setUploadedFileData({ name: file.name, data, types, weights: defaultWeights });
+        setUploadedFileData({
+          name: file.name,
+          data,
+          types,
+          weights: defaultWeights,
+        });
       };
       reader.readAsText(file);
     }
@@ -251,7 +291,12 @@ const Onboarding = ({ onDataLoad }: OnboardingProps) => {
     setApiKeyError(false);
 
     if (uploadedFileData) {
-      onDataLoad(uploadedFileData.data, false, uploadedFileData.types, uploadedFileData.weights);
+      onDataLoad(
+        uploadedFileData.data,
+        false,
+        uploadedFileData.types,
+        uploadedFileData.weights,
+      );
       const currentDataset = useStudyManagerStore.getState().dataset;
       eventTracker({
         action: "start study",
@@ -301,7 +346,9 @@ const Onboarding = ({ onDataLoad }: OnboardingProps) => {
                 role="button"
                 className="btn w-full justify-between"
               >
-                <span>{DATASETS.find((d) => d.value === dataset)?.label || dataset}</span>
+                <span>
+                  {DATASETS.find((d) => d.value === dataset)?.label || dataset}
+                </span>
                 <svg
                   className="w-4 h-4"
                   fill="none"
@@ -359,7 +406,9 @@ const Onboarding = ({ onDataLoad }: OnboardingProps) => {
             {/* Divider */}
             <div className="flex items-center gap-3 py-1">
               <div className="flex-1 border-t border-gray-200" />
-              <span className="text-xs text-gray-400">or upload local files</span>
+              <span className="text-xs text-gray-400">
+                or upload local files
+              </span>
               <div className="flex-1 border-t border-gray-200" />
             </div>
 
@@ -375,10 +424,15 @@ const Onboarding = ({ onDataLoad }: OnboardingProps) => {
               {uploadedFileData ? (
                 <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded p-2">
                   <div className="flex-1 overflow-hidden">
-                    <p className="text-sm font-medium text-gray-700 truncate" title={uploadedFileData.name}>
+                    <p
+                      className="text-sm font-medium text-gray-700 truncate"
+                      title={uploadedFileData.name}
+                    >
                       {uploadedFileData.name}
                     </p>
-                    <p className="text-xs text-gray-500">{uploadedFileData.data.length} items ready</p>
+                    <p className="text-xs text-gray-500">
+                      {uploadedFileData.data.length} items ready
+                    </p>
                   </div>
                   <button
                     className="btn btn-xs text-gray-600"
@@ -390,7 +444,8 @@ const Onboarding = ({ onDataLoad }: OnboardingProps) => {
                     className="btn btn-xs btn-ghost text-error"
                     onClick={() => {
                       setUploadedFileData(null);
-                      if (dataFileInputRef.current) dataFileInputRef.current.value = "";
+                      if (dataFileInputRef.current)
+                        dataFileInputRef.current.value = "";
                     }}
                   >
                     Clear
@@ -521,9 +576,9 @@ const Onboarding = ({ onDataLoad }: OnboardingProps) => {
         </div>
 
         {/* Tutorial Button */}
-        <div className="text-center mt-4">
+        <div className="text-center mt-3">
           <button
-            className="btn btn-ghost btn-sm text-gray-400 hover:text-gray-600"
+            className="text-xs text-gray-400 hover:text-blue-500 underline underline-offset-2 transition-colors"
             onClick={() => setShowTutorial(true)}
           >
             Tutorial & Help
