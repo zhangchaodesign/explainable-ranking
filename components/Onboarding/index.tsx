@@ -11,6 +11,7 @@ import {
   extractSpreadsheetId,
 } from "@/components/Onboarding/useGoogleSheetLoader";
 import { preprocessSheetRows } from "@/components/Onboarding/preprocessSheetRows";
+import TutorialPanel from "@/components/Onboarding/TutorialPanel";
 import { DatasetType } from "@/lib/constants";
 
 interface OnboardingProps {
@@ -50,6 +51,7 @@ const Onboarding = ({ onDataLoad }: OnboardingProps) => {
   } = useSharedConfigStore();
   const { aiEnabled, setAiEnabled, apiKey, setApiKey } = useOpenAIAPI();
   const [apiKeyError, setApiKeyError] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
   const [uploadedFileData, setUploadedFileData] = useState<{name: string, data: any[], types?: { [key: string]: string }, weights?: { [key: string]: number }} | null>(null);
 
   const {
@@ -156,10 +158,9 @@ const Onboarding = ({ onDataLoad }: OnboardingProps) => {
         // Validate type row
         const validTypes = new Set(['image', 'video', 'link', 'name', 'info', 'criterion', 'file', 'filter', '']);
         const isTypeRow = typeRow.every(t => validTypes.has(String(t).toLowerCase().replace(/!$/, '')));
-        const hasName = typeRow.some(t => String(t).toLowerCase().replace(/!$/, '') === 'name');
 
-        if (!isTypeRow || !hasName) {
-          alert("Invalid CSV format. The type row must specify valid data types and must include at least one 'name' column.");
+        if (!isTypeRow) {
+          alert("Invalid CSV format. The type row must specify valid data types (name, criterion, image, video, link, file, info, filter).");
           if (dataFileInputRef.current) dataFileInputRef.current.value = "";
           return;
         }
@@ -518,7 +519,19 @@ const Onboarding = ({ onDataLoad }: OnboardingProps) => {
             </button>
           )}
         </div>
+
+        {/* Tutorial Button */}
+        <div className="text-center mt-4">
+          <button
+            className="btn btn-ghost btn-sm text-gray-400 hover:text-gray-600"
+            onClick={() => setShowTutorial(true)}
+          >
+            Tutorial & Help
+          </button>
+        </div>
       </div>
+
+      {showTutorial && <TutorialPanel onClose={() => setShowTutorial(false)} />}
     </div>
   );
 };
