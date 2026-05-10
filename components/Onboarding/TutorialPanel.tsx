@@ -18,6 +18,99 @@ const TutorialPanel = ({ onClose }: TutorialPanelProps) => {
             </button>
           </div>
 
+          {/* Teaser Figure */}
+          <img
+            src="/teaser_figure.jpg"
+            alt="Interactive Explainable Ranking teaser"
+            className="w-full"
+          />
+
+          {/* How to Use */}
+          <div className="space-y-2">
+            <h3 className="text-sm font-semibold text-gray-700">
+              How to Use
+            </h3>
+            <ol className="text-xs text-gray-500 space-y-2 list-decimal list-inside">
+              <li>
+                <span className="font-medium text-gray-700">Load your data</span>
+                {" — "}
+                Paste a Google Sheet link or upload a CSV/TSV file. Then select
+                which columns to use as criteria, info, and images.
+              </li>
+              <li>
+                <span className="font-medium text-gray-700">
+                  Set your target ranking
+                </span>
+                {" — "}
+                In the{" "}
+                <span className="font-medium text-gray-600">
+                  Target Rank panel
+                </span>{" "}
+                (bottom-left), drag and drop items into your preferred order. You
+                can also use{" "}
+                <span className="font-medium text-gray-600">
+                  Insertion Sort
+                </span>{" "}
+                for guided pairwise comparisons.
+              </li>
+              <li>
+                <span className="font-medium text-gray-700">
+                  Adjust criterion weights
+                </span>
+                {" — "}
+                In the{" "}
+                <span className="font-medium text-gray-600">Weights panel</span>{" "}
+                (bottom-right), drag the weight bars to change how much each
+                criterion matters. Click{" "}
+                <span className="font-medium text-gray-600">
+                  Estimate Weights
+                </span>{" "}
+                to automatically find weights that best explain your ranking.
+              </li>
+              <li>
+                <span className="font-medium text-gray-700">
+                  Identify conflicts
+                </span>
+                {" — "}
+                The{" "}
+                <span className="font-medium text-gray-600">
+                  Rank Comparison
+                </span>{" "}
+                slope chart (top-right) highlights conflicts between your target
+                ranking and the weight-based ranking. Green lines mean agreement;
+                red lines mean contradiction.
+              </li>
+              <li>
+                <span className="font-medium text-gray-700">
+                  Resolve conflicts
+                </span>
+                {" — "}
+                Click on conflicting items to compare them side by side. You can
+                edit scores directly, adjust weights, or add new criteria to
+                resolve the inconsistency.
+              </li>
+              <li>
+                <span className="font-medium text-gray-700">
+                  Add new criteria
+                </span>
+                {" — "}
+                Click{" "}
+                <span className="font-medium text-gray-600">
+                  Add a Criterion
+                </span>{" "}
+                to define a new criterion. Optionally use AI to generate initial
+                scores based on a text description.
+              </li>
+              <li>
+                <span className="font-medium text-gray-700">Export</span>
+                {" — "}
+                When satisfied, click{" "}
+                <span className="font-medium text-gray-600">Export Data</span> to
+                download your final ranking and data as a TSV file.
+              </li>
+            </ol>
+          </div>
+
           {/* Video */}
           <div className="space-y-2">
             <h3 className="text-sm font-semibold text-gray-700">
@@ -130,7 +223,7 @@ const TutorialPanel = ({ onClose }: TutorialPanelProps) => {
               </a>
               . You can also cite our paper using the following BibTeX entry:
             </p>
-            <div className="bg-gray-50 rounded-md p-3 text-xs font-mono text-gray-600 overflow-x-auto whitespace-pre-wrap select-all">
+            <div className="bg-gray-50 rounded-md p-3 text-xs font-mono text-gray-500 overflow-x-auto whitespace-pre-wrap select-all">
               {`@inproceedings{10.1145/3772318.3790810,
   author = {Zhang, Chao and Davis, Abe},
   title = {Interactive Explainable Ranking},

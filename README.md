@@ -21,7 +21,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 ## CHI 2026 Paper
 
-**Interactive Explainable Ranking**
+**Interactive Explainable Ranking**</br>
 Chao Zhang and Abe Davis
 
 
