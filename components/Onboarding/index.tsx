@@ -72,42 +72,66 @@ const Onboarding = ({ onDataLoad }: OnboardingProps) => {
       const reader = new FileReader();
       reader.onload = (event) => {
         const text = event.target?.result as string;
-        const lines = text.split('\n');
-        if (lines.length < 1) return;
+        const firstLine = text.split('\n')[0] || '';
+        if (!firstLine) return;
 
         // Auto-detect delimiter: if first line contains tabs, use tab; otherwise comma
-        const delimiter = lines[0].includes('\t') ? '\t' : ',';
+        const delimiter = firstLine.includes('\t') ? '\t' : ',';
 
-        const parseRow = (line: string) => {
-          if (delimiter === '\t') {
-            return line.split('\t');
-          }
-          // CSV quote-aware parsing for comma delimiter
-          let inQuotes = false;
+        // Parse the entire text into rows, handling multiline quoted fields
+        const parseCSV = (input: string): string[][] => {
+          const rows: string[][] = [];
           let currentField = '';
-          const row: string[] = [];
-          for (let c = 0; c < line.length; c++) {
-            const char = line[c];
-            if (char === '"' && line[c+1] === '"') {
-              currentField += '"';
-              c++;
-            } else if (char === '"') {
-              inQuotes = !inQuotes;
-            } else if (char === ',' && !inQuotes) {
-              row.push(currentField);
-              currentField = '';
+          let currentRow: string[] = [];
+          let inQuotes = false;
+
+          for (let i = 0; i < input.length; i++) {
+            const char = input[i];
+
+            if (inQuotes) {
+              if (char === '"') {
+                if (i + 1 < input.length && input[i + 1] === '"') {
+                  // Escaped quote
+                  currentField += '"';
+                  i++;
+                } else {
+                  // End of quoted field
+                  inQuotes = false;
+                }
+              } else {
+                currentField += char;
+              }
             } else {
-              currentField += char;
+              if (char === '"') {
+                inQuotes = true;
+              } else if (char === delimiter) {
+                currentRow.push(currentField.trim());
+                currentField = '';
+              } else if (char === '\n' || char === '\r') {
+                // Handle \r\n
+                if (char === '\r' && i + 1 < input.length && input[i + 1] === '\n') {
+                  i++;
+                }
+                currentRow.push(currentField.trim());
+                if (currentRow.some(cell => cell !== '')) {
+                  rows.push(currentRow);
+                }
+                currentRow = [];
+                currentField = '';
+              } else {
+                currentField += char;
+              }
             }
           }
-          row.push(currentField);
-          return row;
+          // Push last field/row
+          currentRow.push(currentField.trim());
+          if (currentRow.some(cell => cell !== '')) {
+            rows.push(currentRow);
+          }
+          return rows;
         };
 
-        // Parse all lines into a 2D array
-        const rawRows: any[][] = lines
-          .filter((line) => line.trim() !== '')
-          .map((line) => parseRow(line).map((cell) => cell.trim()));
+        const rawRows: any[][] = parseCSV(text);
 
         // Preprocess to handle index:/cprop: format
         const { rows: processedRows, indexColumn, defaultWeights } = preprocessSheetRows(rawRows);

@@ -76,12 +76,17 @@ const Header = ({ onDataLoad }: HeaderProps) => {
       })
       .join(TAB);
 
+    const escapeField = (val: unknown): string => {
+      const str = val !== undefined && val !== null ? String(val) : "";
+      if (str.includes("\t") || str.includes("\n") || str.includes("\r") || str.includes('"')) {
+        return '"' + str.replace(/"/g, '""') + '"';
+      }
+      return str;
+    };
+
     const dataLines = dataToExport.map((item) =>
       allKeys
-        .map((key) => {
-          const val = item[key];
-          return val !== undefined && val !== null ? val : "";
-        })
+        .map((key) => escapeField(item[key]))
         .join(TAB),
     );
 
