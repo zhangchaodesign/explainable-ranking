@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Interactive Explainable Ranking — CHI 2026",
-  description:
-    "An interactive decision-making tool for discovering and exploring explainable rankings.",
+  title: "Interactive Explainable Ranking",
+  description: "",
 };
 
 const LINKS = [
