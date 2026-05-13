@@ -6,6 +6,12 @@ import Item from "@/components/RankingPanel/Item";
 import { DataPoint } from "@/lib/type";
 import { eventTracker } from "@/lib/utils";
 import ItemPopup from "@/components/RankingPanel/ItemPopup";
+import InsertionSortDialog from "@/components/InsertionSortDialog";
+import {
+  useWeightPanelStore,
+  useItemDataStore,
+  useInfoPanelConfigStore,
+} from "@/lib/store";
 
 interface GalleryProps {
   classes?: string;
@@ -29,6 +35,12 @@ const Gallery = ({
   const [popupItem, setPopupItem] = useState<DataPoint | null>(null);
   const [popupOpen, setPopupOpen] = useState(false);
   const [popupPosition, setPopupPosition] = useState({ x: 0, y: 0 });
+  const [showInsertionSortConfirm, setShowInsertionSortConfirm] =
+    useState(false);
+
+  const { setSelectedIDs, setIsInfoOpen } = useInfoPanelConfigStore();
+  const { gridItems, setRankItems } = useItemDataStore();
+  const { weightSortState, setWeightSortState } = useWeightPanelStore();
 
   // Drag and Drop Handler
   const onDragDropEnds = async (oldIndex: number, newIndex: number) => {
@@ -123,9 +135,14 @@ const Gallery = ({
           }}
         >
           {items.length === 0 ? (
-            <div className="flex-shrink-0 h-16 w-full bg-white border-4 border-gray-100 rounded-lg text-sm text-center flex items-center justify-center text-gray-400 font-medium opacity-60">
-              Drop here
-            </div>
+            <button
+              onClick={() => {
+                setShowInsertionSortConfirm(true);
+              }}
+              className="btn btn-sm btn-primary btn-soft shadow-none w-full"
+            >
+              Click here to query for user preferences (User Insertion Sort)
+            </button>
           ) : (
             <>
               {items.map((item) => (
@@ -153,6 +170,19 @@ const Gallery = ({
           ⬇️ Your Rank (Drag and Drop to Reorder)
         </p>
       </div>
+
+      {/* Insertion Sort Criteria Confirmation Dialog */}
+      <InsertionSortDialog
+        isOpen={showInsertionSortConfirm}
+        onClose={() => setShowInsertionSortConfirm(false)}
+        weightSortState={weightSortState}
+        setWeightSortState={setWeightSortState}
+        gridItems={gridItems}
+        setRankItems={setRankItems}
+        setSelectedIDs={setSelectedIDs}
+        setIsInfoOpen={setIsInfoOpen}
+      />
+
       <ItemPopup
         classes="z-[1001]"
         item={popupItem}
