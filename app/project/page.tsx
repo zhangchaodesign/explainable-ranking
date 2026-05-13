@@ -11,7 +11,13 @@ const LINKS = [
     label: "Paper",
     href: "https://dl.acm.org/doi/10.1145/3772318.3790810",
     icon: (
-      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+      <svg
+        className="w-4 h-4"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={2}
+      >
         <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
         <polyline points="14 2 14 8 20 8" />
         <line x1="16" y1="13" x2="8" y2="13" />
@@ -24,7 +30,13 @@ const LINKS = [
     label: "Video",
     href: "https://drive.google.com/file/d/1ay2XOiKaTCWf9xmrms4-2L3OPy4idJUy/preview",
     icon: (
-      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+      <svg
+        className="w-4 h-4"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={2}
+      >
         <polygon points="23 7 16 12 23 17 23 7" />
         <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
       </svg>
@@ -34,7 +46,13 @@ const LINKS = [
     label: "Tool",
     href: "https://ranking.chaozhang.design/",
     icon: (
-      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+      <svg
+        className="w-4 h-4"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={2}
+      >
         <circle cx="12" cy="12" r="10" />
         <line x1="2" y1="12" x2="22" y2="12" />
         <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
@@ -55,8 +73,7 @@ const LINKS = [
 export default function ProjectPage() {
   return (
     <main className="min-h-screen bg-white">
-      <div className="max-w-3xl mx-auto px-6 py-16 space-y-12">
-
+      <div className="max-w-4xl mx-auto px-6 py-16 space-y-12">
         {/* Hero */}
         <div className="space-y-5">
           {/* Venue + Award */}
@@ -65,7 +82,11 @@ export default function ProjectPage() {
               CHI 2026
             </span>
             <span className="text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full flex items-center gap-1">
-              <svg className="w-3 h-3 text-amber-500" viewBox="0 0 20 20" fill="currentColor">
+              <svg
+                className="w-3 h-3 text-amber-500"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
               </svg>
               Best Paper Award
@@ -79,12 +100,26 @@ export default function ProjectPage() {
 
           {/* Authors */}
           <p className="text-base text-gray-600">
-            <a href="https://chaozhang.design/" target="_blank" className="text-blue-600 hover:underline font-medium">
+            <a
+              href="https://chaozhang.design/"
+              target="_blank"
+              className="text-blue-600 hover:underline font-medium"
+            >
               Chao Zhang
             </a>
             {" and "}
-            <span className="font-medium">Abe Davis</span>
-            <span className="text-gray-400 ml-2 text-sm">Cornell University</span>
+            <span className="font-medium">
+              <a
+                href="https://abedavis.com/"
+                target="_blank"
+                className="text-blue-600 hover:underline font-medium"
+              >
+                Abe Davis
+              </a>
+            </span>
+            <span className="text-gray-400 ml-2 text-sm">
+              Cornell University
+            </span>
           </p>
 
           {/* Action buttons */}
@@ -109,23 +144,23 @@ export default function ProjectPage() {
           <img
             src="/teaser_figure.jpg"
             alt="Interactive Explainable Ranking teaser figure"
-            className="w-full rounded-xl border border-gray-100 shadow-sm"
+            className="w-full border-gray-100 shadow-sm"
           />
           <figcaption className="text-xs text-gray-500 leading-relaxed">
             In this paper, we formalize explainable ranking as a new problem for
-            DMTs: given a set of options, the user needs to find a preferred
-            ranking of those options that is consistent with some weighted
-            combination of simpler or less ambiguous criteria (an explanation).
-            To assist users in explainable ranking, our tool makes the three
-            loops interactive: (1) rank choices, (2) explain with criteria and
-            weights, and (3) identify &amp; resolve conflicts. It visualizes
-            conflicts between the user proposed ranking and the ranking explained
-            by current criteria and weights; allows users to freely edit criteria
-            and weights or add new criteria; and offers User Insertion Sort to
-            safely use uncertain priors (e.g., from AI or optimization) while
-            ensuring that every ranking decision is checked by a human user. We
-            evaluate our system on different ranking tasks reflecting real-world
-            use cases.
+            decision-making tools: given a set of options, the user needs to
+            find a preferred ranking of those options that is consistent with
+            some weighted combination of simpler or less ambiguous criteria (an
+            explanation). To assist users in explainable ranking, our tool makes
+            the three loops interactive: (1) rank choices, (2) explain with
+            criteria and weights, and (3) identify &amp; resolve conflicts. It
+            visualizes conflicts between the user proposed ranking and the
+            ranking explained by current criteria and weights; allows users to
+            freely edit criteria and weights or add new criteria; and offers
+            User Insertion Sort to safely use uncertain priors (e.g., from AI or
+            optimization) while ensuring that every ranking decision is checked
+            by a human user. We evaluate our system on different ranking tasks
+            reflecting real-world use cases.
           </figcaption>
         </figure>
 
@@ -174,7 +209,8 @@ export default function ProjectPage() {
             Citation
           </h2>
           <div className="w-8 h-0.5 bg-gray-200 rounded-full" />
-          <div className="bg-gray-50 rounded-xl border border-gray-100 p-4 text-2xs font-mono text-gray-500 whitespace-pre-wrap leading-relaxed select-all overflow-x-auto"
+          <div
+            className="bg-gray-50 rounded-xl border border-gray-100 p-4 text-2xs font-mono text-gray-500 whitespace-pre-wrap leading-relaxed select-all overflow-x-auto"
             style={{ fontSize: "11px" }}
           >{`@inproceedings{10.1145/3772318.3790810,
   author = {Zhang, Chao and Davis, Abe},
@@ -197,14 +233,10 @@ export default function ProjectPage() {
         {/* Footer */}
         <footer className="pt-4 border-t border-gray-100 flex justify-between items-center text-xs text-gray-400">
           <span>Cornell University · CHI 2026</span>
-          <a
-            href="/"
-            className="hover:text-gray-600 transition-colors"
-          >
+          <a href="/" className="hover:text-gray-600 transition-colors">
             ← Open Tool
           </a>
         </footer>
-
       </div>
     </main>
   );
