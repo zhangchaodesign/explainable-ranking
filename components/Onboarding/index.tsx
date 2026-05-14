@@ -1,4 +1,5 @@
 import React, { useState, useRef } from "react";
+import LandingPage from "@/components/Onboarding/LandingPage";
 import {
   useStudyManagerStore,
   useSharedConfigStore,
@@ -34,6 +35,7 @@ const DATASETS: { value: DatasetType; label: string }[] = [
 ];
 
 const Onboarding = ({ onDataLoad }: OnboardingProps) => {
+  const [showLanding, setShowLanding] = useState(true);
   const { dataset, setDataset } = useStudyManagerStore();
   const {
     sheetLink,
@@ -317,6 +319,10 @@ const Onboarding = ({ onDataLoad }: OnboardingProps) => {
       },
     });
   };
+
+  if (showLanding) {
+    return <LandingPage onOpenTool={() => setShowLanding(false)} />;
+  }
 
   return (
     <div className="flex items-center justify-center min-h-screen">
