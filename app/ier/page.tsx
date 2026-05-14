@@ -213,6 +213,26 @@ export default function ProjectPage() {
           </div>
         </section>
 
+        {/* Press */}
+        <section className="space-y-3">
+          <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">
+            Press
+          </h2>
+          <div className="w-8 h-0.5 bg-gray-200 rounded-full" />
+          <a
+            href="https://news.cornell.edu/stories/2026/05/humans-are-bad-making-complex-decisions-ai-can-call-them-out"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group flex items-baseline gap-3"
+          >
+            <span className="text-xs text-gray-400 whitespace-nowrap">Cornell Chronicle</span>
+            <span className="w-px h-3 bg-gray-200 self-center flex-shrink-0" />
+            <span className="text-sm text-gray-700 group-hover:text-blue-600 transition-colors leading-snug">
+              Humans are bad at making complex decisions. AI can call them out.
+            </span>
+          </a>
+        </section>
+
         {/* Citation */}
         <section className="space-y-3">
           <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">
