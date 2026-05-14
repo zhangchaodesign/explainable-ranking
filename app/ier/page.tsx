@@ -27,7 +27,7 @@ const LINKS = [
   },
   {
     label: "Video",
-    href: "https://drive.google.com/file/d/1ay2XOiKaTCWf9xmrms4-2L3OPy4idJUy/preview",
+    href: "https://youtu.be/cPxyd8doP_4",
     icon: (
       <svg
         className="w-4 h-4"
@@ -136,6 +136,17 @@ export default function ProjectPage() {
               </a>
             ))}
           </div>
+        </div>
+
+        {/* Project Video */}
+        <div className="rounded-xl overflow-hidden border border-gray-100 shadow-sm">
+          <iframe
+            className="w-full aspect-video"
+            src="https://www.youtube.com/embed/cPxyd8doP_4"
+            title="Interactive Explainable Ranking"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
         </div>
 
         {/* Teaser figure */}
