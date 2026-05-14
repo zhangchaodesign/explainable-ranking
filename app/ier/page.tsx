@@ -109,7 +109,7 @@ export default function ProjectPage() {
             {" and "}
             <span className="font-medium">
               <a
-                href="https://abedavis.com/"
+                href="https://www.cs.cornell.edu/abe/group/"
                 target="_blank"
                 className="text-blue-600 hover:underline font-medium"
               >
