@@ -243,6 +243,18 @@ export default function ProjectPage() {
               Humans are bad at making complex decisions. AI can call them out.
             </span>
           </a>
+          <a
+            href="https://www.digitaltrends.com/cool-tech/ai-shouldnt-make-decisions-for-you-but-this-one-will-tell-when-youre-making-a-bad-one/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group flex items-baseline gap-3"
+          >
+            <span className="text-xs text-gray-400 whitespace-nowrap">Digital Trends</span>
+            <span className="w-px h-3 bg-gray-200 self-center flex-shrink-0" />
+            <span className="text-sm text-gray-700 group-hover:text-blue-600 transition-colors leading-snug">
+              AI shouldn&apos;t make decisions for you, but this one will tell when you&apos;re making a bad one.
+            </span>
+          </a>
         </section>
 
         {/* Citation */}
